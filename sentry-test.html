@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentry SDK - Fake Errors Test</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+      padding: 50px;
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 { color: #e74c3c; margin-bottom: 10px; font-size: 2.6em; }
+    .subtitle { color: #7f8c8d; margin-bottom: 30px; }
+
+    .status-box {
+      background: #f8f9fa;
+      border-left: 4px solid #e74c3c;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 6px;
+      text-align: left;
+      font-size: 0.95em;
+    }
+
+    .status-box strong { color: #e74c3c; }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover { opacity: 0.9; }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .config-section {
+      background: #e8f5e9;
+      border: 2px solid #27ae60;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+      font-size: 0.95em;
+    }
+
+    .form-group input {
+      width: 100%;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #27ae60 !important;
+      box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
+    }
+
+    .error-section {
+      background: #fff5f5;
+      border: 2px dashed #e74c3c;
+      padding: 25px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .error-type {
+      background: white;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 4px solid #e74c3c;
+      cursor: pointer;
+    }
+
+    .error-type-title {
+      font-weight: 600;
+      color: #e74c3c;
+      margin-bottom: 5px;
+    }
+
+    .error-type-desc {
+      font-size: 0.85em;
+      color: #7f8c8d;
+    }
+
+    .counter {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🚨 Sentry SDK </h1>
+    <p class="subtitle">Fake Errors Test – Browser SDK - Readonly poc by mr_robert</p>
+
+    <div class="status-box">
+      <p><strong>Service:</strong> <span id="service-display">Not initialized</span></p>
+      <p><strong>Status:</strong> <span id="status-display" style="color: #e74c3c;">Waiting for configuration</span></p>
+      <p><strong>Errors Sent:</strong> <span id="count">0</span></p>
+    </div>
+
+    <div class="config-section" id="config-section">
+      <h3 style="margin-bottom: 15px; color: #e74c3c;">Configuration</h3>
+      
+      <div class="form-group">
+        <label for="dsn-input">Datadog Sentry DSN:</label>
+        <input type="text" id="dsn-input" placeholder="pub09cd3ed5ba924dda9a3d18b5427c5040@sentry-intake.datadoghq.com/1" value="" style="width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9em;">
+      </div>
+
+      <div class="form-group">
+        <label for="service-input">Service Name:</label>
+        <input type="text" id="service-input" placeholder="readonly-SentrySDK-create-fake-errors" value="" style="width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9em;">
+      </div>
+
+      <button onclick="initSentry()" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%);">Initialize Sentry</button>
+    </div>
+
+    <div class="button-group">
+      <button onclick="sendAllErrors()" id="send-all-btn" disabled>Send All Error Types</button>
+      <button onclick="clearCounter()" id="clear-btn" disabled>Clear Counter</button>
+    </div>
+
+    <div class="error-section" id="error-section" style="display: none;">
+      <h3>Generate Fake Errors</h3>
+
+      <div class="error-type" onclick="jsError()">
+        <div class="error-type-title">1. JavaScript Error</div>
+        <div class="error-type-desc">Standard JS Error</div>
+      </div>
+
+      <div class="error-type" onclick="typeError()">
+        <div class="error-type-title">2. Type Error</div>
+        <div class="error-type-desc">Undefined method call</div>
+      </div>
+
+      <div class="error-type" onclick="rangeError()">
+        <div class="error-type-title">3. Range Error</div>
+        <div class="error-type-desc">Invalid array length</div>
+      </div>
+
+      <div class="error-type" onclick="syntaxError()">
+        <div class="error-type-title">4. Syntax Error</div>
+        <div class="error-type-desc">Broken JSON parse</div>
+      </div>
+
+      <div class="error-type" onclick="customError()">
+        <div class="error-type-title">5. Custom Error</div>
+        <div class="error-type-desc">Application specific</div>
+      </div>
+
+      <div class="error-type" onclick="infoMessage()">
+        <div class="error-type-title">6. Info Message</div>
+        <div class="error-type-desc">captureMessage</div>
+      </div>
+
+      <div class="counter">
+        Total Errors: <span id="total">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sentry SDK -->
+  <script src="https://browser.sentry-cdn.com/7.100.0/bundle.min.js"></script>
+  <script>
+    let count = 0;
+    let sentryInitialized = false;
+
+    const update = () => {
+      count++;
+      document.getElementById("count").innerText = count;
+      document.getElementById("total").innerText = count;
+    };
+
+    function initSentry() {
+      const dsnInput = document.getElementById("dsn-input").value.trim();
+      const serviceInput = document.getElementById("service-input").value.trim();
+
+      if (!dsnInput) {
+        alert("Please enter a DSN");
+        return;
+      }
+
+      if (!serviceInput) {
+        alert("Please enter a Service name");
+        return;
+      }
+
+      // Format DSN properly
+      const dsn = dsnInput.startsWith("https://") ? dsnInput : `https://${dsnInput}`;
+
+      try {
+        Sentry.init({
+          dsn: dsn,
+          environment: "local-test",
+          tracesSampleRate: 1.0,
+          initialScope: {
+            tags: {
+              service: serviceInput
+            }
+          }
+        });
+
+        sentryInitialized = true;
+
+        // Update UI
+        document.getElementById("service-display").innerText = serviceInput;
+        document.getElementById("status-display").innerText = "Initialized ✓";
+        document.getElementById("status-display").style.color = "#27ae60";
+        
+        // Hide config section
+        document.getElementById("config-section").style.display = "none";
+        
+        // Show error section
+        document.getElementById("error-section").style.display = "block";
+        
+        // Enable buttons
+        document.getElementById("send-all-btn").disabled = false;
+        document.getElementById("clear-btn").disabled = false;
+
+        alert(`✓ Sentry initialized with service: ${serviceInput}`);
+      } catch (e) {
+        alert(`Error initializing Sentry: ${e.message}`);
+        console.error(e);
+      }
+    }
+
+    function jsError() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      try { throw new Error("JS Error Test"); }
+      catch (e) { Sentry.captureException(e); update(); }
+    }
+
+    function typeError() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      try { let x; x.test(); }
+      catch (e) { Sentry.captureException(e); update(); }
+    }
+
+    function rangeError() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      try { new Array(-1); }
+      catch (e) { Sentry.captureException(e); update(); }
+    }
+
+    function syntaxError() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      try { JSON.parse("{ broken }"); }
+      catch (e) { Sentry.captureException(e); update(); }
+    }
+
+    function customError() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      const e = new Error("Payment failed");
+      e.name = "PaymentError";
+      Sentry.captureException(e);
+      update();
+    }
+
+    function infoMessage() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      Sentry.captureMessage("Info message from browser test", "info");
+      update();
+    }
+
+    function sendAllErrors() {
+      if (!sentryInitialized) { alert("Initialize Sentry first"); return; }
+      jsError();
+      setTimeout(typeError, 300);
+      setTimeout(rangeError, 600);
+      setTimeout(syntaxError, 900);
+      setTimeout(customError, 1200);
+      setTimeout(infoMessage, 1500);
+    }
+
+    function clearCounter() {
+      count = 0;
+      document.getElementById("count").innerText = 0;
+      document.getElementById("total").innerText = 0;
+    }
+  </script>
+</body>
+</html>

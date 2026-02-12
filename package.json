@@ -1,0 +1,13 @@
+{
+  "name": "robertapp-sentrysdk-fake-errors",
+  "version": "1.0.0",
+  "description": "Isolated app for testing Sentry SDK error reporting to Datadog",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

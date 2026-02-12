@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentry SDK - Fake Errors Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+      padding: 50px;
+      max-width: 700px;
+      text-align: center;
+    }
+    
+    h1 {
+      color: #e74c3c;
+      margin-bottom: 10px;
+      font-size: 2.8em;
+    }
+    
+    .subtitle {
+      color: #7f8c8d;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
+    .status-box {
+      background: #f8f9fa;
+      border-left: 4px solid #e74c3c;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 6px;
+      text-align: left;
+    }
+    
+    .status-box p {
+      color: #555;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+    
+    .status-box strong {
+      color: #e74c3c;
+    }
+    
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      font-size: 0.95em;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .error-section {
+      background: #fff5f5;
+      border: 2px dashed #e74c3c;
+      padding: 25px;
+      border-radius: 8px;
+      text-align: left;
+    }
+    
+    .error-section h3 {
+      color: #e74c3c;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    
+    .error-type {
+      background: white;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 4px solid #e74c3c;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .error-type:hover {
+      background: #fff9f9;
+      transform: translateX(5px);
+    }
+    
+    .error-type-title {
+      font-weight: 600;
+      color: #e74c3c;
+      margin-bottom: 5px;
+    }
+    
+    .error-type-desc {
+      font-size: 0.85em;
+      color: #7f8c8d;
+    }
+    
+    .counter {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚨 Sentry SDK</h1>
+    <p class="subtitle">Fake Errors Test - Reports to Datadog</p>
+    
+    <div class="status-box">
+      <p><strong>Service:</strong> readonly-SentrySDK-create-fake-errors</p>
+      <p><strong>DSN:</strong> pub09cd3ed5ba924dda9a3d18b5427c5040</p>
+      <p><strong>Status:</strong> Ready to capture errors</p>
+      <p><strong>Errors Sent:</strong> <span id="error-count">0</span></p>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="sendAllErrors()">Send All Error Types</button>
+      <button onclick="clearCounter()">Clear Counter</button>
+    </div>
+    
+    <div class="error-section">
+      <h3>Generate Fake Errors</h3>
+      
+      <div class="error-type" onclick="throwJSError()">
+        <div class="error-type-title">1. JavaScript Error</div>
+        <div class="error-type-desc">Throws a standard JavaScript error</div>
+      </div>
+      
+      <div class="error-type" onclick="throwTypeError()">
+        <div class="error-type-title">2. Type Error</div>
+        <div class="error-type-desc">Attempts undefined method call</div>
+      </div>
+      
+      <div class="error-type" onclick="throwRangeError()">
+        <div class="error-type-title">3. Range Error</div>
+        <div class="error-type-desc">Invalid array length operation</div>
+      </div>
+      
+      <div class="error-type" onclick="throwSyntaxError()">
+        <div class="error-type-title">4. Syntax Error</div>
+        <div class="error-type-desc">Invalid JSON parsing</div>
+      </div>
+      
+      <div class="error-type" onclick="throwCustomError()">
+        <div class="error-type-title">5. Custom Error</div>
+        <div class="error-type-desc">Application-specific error</div>
+      </div>
+      
+      <div class="error-type" onclick="captureMessage()">
+        <div class="error-type-title">6. Info Message</div>
+        <div class="error-type-desc">Send info message to Sentry</div>
+      </div>
+      
+      <div class="counter">
+        Total Errors Captured: <span id="total-count">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sentry SDK for Error Tracking -->
+  <script src="https://browser.sentry-cdn.com/7.100.0/bundle.min.js"></script>
+  <script>
+    Sentry.init({
+      dsn: 'https://pub09cd3ed5ba924dda9a3d18b5427c5040@sentry-intake.datadoghq.com/1',
+      initialScope: {
+        tags: {
+          service: 'readonly-SentrySDK-create-fake-errors',
+          version: '1.0.0'
+        }
+      },
+      tracesSampleRate: 1.0
+    });
+  </script>
+
+  <!-- Error Generation Script -->
+  <script>
+    let errorCount = 0;
+
+    function incrementCounter() {
+      errorCount++;
+      document.getElementById('error-count').textContent = errorCount;
+      document.getElementById('total-count').textContent = errorCount;
+    }
+
+    function throwJSError() {
+      try {
+        throw new Error('This is a standard JavaScript error for testing');
+      } catch (e) {
+        Sentry.captureException(e);
+        incrementCounter();
+        alert('✓ JavaScript Error sent to Sentry');
+      }
+    }
+
+    function throwTypeError() {
+      try {
+        const obj = null;
+        obj.nonExistentMethod();
+      } catch (e) {
+        Sentry.captureException(e);
+        incrementCounter();
+        alert('✓ Type Error sent to Sentry');
+      }
+    }
+
+    function throwRangeError() {
+      try {
+        const arr = new Array(-1);
+      } catch (e) {
+        Sentry.captureException(e);
+        incrementCounter();
+        alert('✓ Range Error sent to Sentry');
+      }
+    }
+
+    function throwSyntaxError() {
+      try {
+        JSON.parse('{ invalid json }');
+      } catch (e) {
+        Sentry.captureException(e);
+        incrementCounter();
+        alert('✓ Syntax Error sent to Sentry');
+      }
+    }
+
+    function throwCustomError() {
+      try {
+        throw new Error('Custom Application Error: Payment processing failed');
+      } catch (e) {
+        e.name = 'PaymentError';
+        Sentry.captureException(e);
+        incrementCounter();
+        alert('✓ Custom Error sent to Sentry');
+      }
+    }
+
+    function captureMessage() {
+      Sentry.captureMessage('User action: Feature engagement test initiated', 'info');
+      incrementCounter();
+      alert('✓ Info Message sent to Sentry');
+    }
+
+    function sendAllErrors() {
+      throwJSError();
+      setTimeout(() => throwTypeError(), 500);
+      setTimeout(() => throwRangeError(), 1000);
+      setTimeout(() => throwSyntaxError(), 1500);
+      setTimeout(() => throwCustomError(), 2000);
+      setTimeout(() => captureMessage(), 2500);
+    }
+
+    function clearCounter() {
+      errorCount = 0;
+      document.getElementById('error-count').textContent = '0';
+      document.getElementById('total-count').textContent = '0';
+      alert('Counter cleared');
+    }
+  </script>
+</body>
+</html>

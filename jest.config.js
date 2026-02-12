@@ -10,12 +10,5 @@ module.exports = {
   ],
   coveragePathIgnorePatterns: [
     '/node_modules/'
-  ],
-  reporters: [
-    'default',
-    ['jest-junit', {
-      outputDirectory: 'coverage',
-      outputName: 'junit.xml'
-    }]
   ]
 };

@@ -58,3 +58,5 @@ All errors sent from this app will appear in your Datadog dashboard under:
 - Version: 1.0.0
 
 Each error includes full stack trace, timestamp, and context information for debugging and analysis.
+
+> Note: This line was added as an example change by Bits AI on 2026-06-03.
